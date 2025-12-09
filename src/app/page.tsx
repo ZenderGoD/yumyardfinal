@@ -3,6 +3,7 @@ import { sampleOrders } from "@/lib/sampleData";
 import { StatusPill } from "@/components/order/StatusPill";
 import { StatusTimeline } from "@/components/order/StatusTimeline";
 import { Button } from "@/components/ui/button";
+import { HomeQuickOrder } from "@/components/home/HomeQuickOrder";
 
 const heroOrder = sampleOrders[0];
 
@@ -61,6 +62,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="mt-8">
+        <HomeQuickOrder />
+      </div>
 
       <section className="mt-10 grid gap-4 md:grid-cols-3">
         {[
