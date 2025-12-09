@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YumYard – QR/table + delivery ordering
 
-## Getting Started
+Mobile-first ordering for dine-in and delivery with live kitchen status and an owner dashboard. Built with Next.js App Router, TypeScript, Tailwind (v4), Convex schema, Zustand, and Sonner.
 
-First, run the development server:
+## App surfaces
+- Landing: `app/page.tsx`
+- Customer menu + cart + checkout (QR/table aware): `app/(customer)/menu/page.tsx`
+- Customer order tracking: `app/(customer)/order/[orderId]/page.tsx`
+- Owner dashboard: `app/(owner)/dashboard/page.tsx`
+- Owner menu manager: `app/(owner)/menu/page.tsx`
+- QR previews: `app/qr/page.tsx`
 
+## Running locally
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment
+- `NEXT_PUBLIC_UPI_ID` – UPI VPA used to build intent URLs (e.g., `yourupi@bank`).
+- Optional: configure Convex if you deploy backend; schema lives in `convex/schema.ts`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Notes
+- Menu, orders, and tables are seeded from `src/lib/sampleData.ts` for UI demo.
+- Cart and checkout state live in `zustand` (`src/stores/cart.ts`).
+- Payments: BHIM UPI intent link or COD choice in cart drawer; order ID echoed in UPI note.
+- QR flow: add `?tableId=T1` to `menu` to prefill table and skip address.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+- Vercel recommended for the Next.js front-end.
+- Convex Cloud recommended for realtime order storage; run `npm run convex:codegen` after setting up a Convex project and auth.
