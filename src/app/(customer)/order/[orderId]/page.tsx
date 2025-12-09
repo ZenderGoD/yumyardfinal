@@ -5,11 +5,12 @@ import { StatusTimeline } from "@/components/order/StatusTimeline";
 import { StatusPill } from "@/components/order/StatusPill";
 
 type Props = {
-  params: { orderId: string };
+  params: Promise<{ orderId: string }>;
 };
 
-export default function OrderDetailPage({ params }: Props) {
-  const order = sampleOrders.find((o) => o.id === params.orderId);
+export default async function OrderDetailPage({ params }: Props) {
+  const { orderId } = await params;
+  const order = sampleOrders.find((o) => o.id === orderId);
   if (!order) return notFound();
 
   return (

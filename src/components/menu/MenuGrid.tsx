@@ -3,7 +3,7 @@ import { MenuCard } from "./MenuCard";
 
 type Props = {
   items: MenuItem[];
-  onAdd: (item: MenuItem) => void;
+  onAdd: (item: MenuItem, addOnIds?: string[], note?: string) => void;
 };
 
 export function MenuGrid({ items, onAdd }: Props) {

@@ -7,12 +7,14 @@ import { MenuGrid } from "@/components/menu/MenuGrid";
 import { CartDrawer } from "@/components/menu/CartDrawer";
 import { useCart } from "@/stores/cart";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function MenuPage() {
   const params = useSearchParams();
   const tableId = params.get("tableId");
   const { setMode, setTableId, mode } = useCart();
   const [category, setCategory] = useState<string>("All");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (tableId) {
@@ -32,6 +34,16 @@ export default function MenuPage() {
         ? sampleMenu
         : sampleMenu.filter((m) => m.category === category),
     [category],
+  );
+
+  const searched = useMemo(
+    () =>
+      filtered.filter(
+        (m) =>
+          m.name.toLowerCase().includes(search.toLowerCase()) ||
+          m.description.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [filtered, search],
   );
 
   return (
@@ -63,6 +75,15 @@ export default function MenuPage() {
         </div>
       </div>
 
+      <div className="mt-4 grid gap-3 md:grid-cols-[1.5fr_1fr]">
+        <Input
+          placeholder="Search coffee, brunch, desserts..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full bg-white"
+        />
+      </div>
+
       <div className="mt-6 flex flex-wrap gap-2">
         {categories.map((c) => (
           <button
@@ -81,9 +102,10 @@ export default function MenuPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
         <MenuGrid
-          items={filtered}
-          onAdd={(item) => {
-            useCart.getState().addItem(item);
+          items={searched}
+          onAdd={(item, addOnIds, note) => {
+            const addOns = item.addOns?.filter((a) => addOnIds?.includes(a.id));
+            useCart.getState().addItem(item, { addOns, notes: note });
           }}
         />
         <CartDrawer />

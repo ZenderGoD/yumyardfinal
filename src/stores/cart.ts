@@ -19,7 +19,10 @@ type CartState = {
   setMode: (mode: Mode) => void;
   setTableId: (id?: string) => void;
   setContact: (contact: Contact) => void;
-  addItem: (item: MenuItem, options?: { addOns?: MenuItem["addOns"]; notes?: string }) => void;
+  addItem: (
+    item: MenuItem,
+    options?: { addOns?: MenuItem["addOns"]; notes?: string },
+  ) => void;
   removeItem: (itemId: string) => void;
   clear: () => void;
   total: () => number;

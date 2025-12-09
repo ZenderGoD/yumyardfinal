@@ -29,11 +29,17 @@ export function CartDrawer() {
   const fees = mode === "delivery" ? 30 : 0;
   const grandTotal = subtotal + taxes + fees;
 
-  const canPlace = items.length > 0 && (mode === "table" || contact.address);
+  const phoneValid = contact.phone && contact.phone.length >= 10;
+  const addressValid = mode === "table" || (contact.address && phoneValid);
+  const canPlace = items.length > 0 && addressValid;
 
   const handlePlace = () => {
-    if (!canPlace) {
-      toast.error("Add items and fill contact/address to continue");
+    if (!items.length) {
+      toast.error("Add items to cart");
+      return;
+    }
+    if (mode === "delivery" && !addressValid) {
+      toast.error("Add address and valid phone (10+ digits)");
       return;
     }
     const orderId = `YY-${Math.floor(Math.random() * 9000 + 1000)}`;
