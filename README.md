@@ -12,8 +12,8 @@ Mobile-first ordering for dine-in and delivery with live kitchen status and an o
 
 ## Running locally
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 # open http://localhost:3000
 ```
 
