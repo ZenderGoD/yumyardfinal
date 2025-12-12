@@ -9,13 +9,14 @@ type Props = {
 };
 
 export function OrderCard({ order, compact }: Props) {
+  const displayId = order.code ?? order.id;
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-white/80 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <p className="text-base font-semibold text-[#2c2218]">
-              {order.id}
+              {displayId}
             </p>
             <StatusPill status={order.status} />
           </div>
@@ -32,7 +33,7 @@ export function OrderCard({ order, compact }: Props) {
 
       <div className="mt-3 flex flex-wrap gap-2">
         {order.items.map((item) => (
-          <Badge key={item.itemId + item.variantName} tone="neutral">
+          <Badge key={(item.itemId ?? item.name) + (item.variantName ?? "")} tone="neutral">
             {item.quantity}× {item.name}
           </Badge>
         ))}

@@ -31,14 +31,19 @@ export type Table = {
 };
 
 export type PaymentMethod = "upi" | "cod";
-export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type PaymentStatus = "pending" | "pending_cash" | "paid" | "failed" | "refunded";
+
+export type OrderAddOn = {
+  name: string;
+  price: number;
+};
 
 export type OrderItem = {
-  itemId: string;
+  itemId?: string;
   name: string;
   price: number;
   quantity: number;
-  addOns?: MenuAddOn[];
+  addOns?: OrderAddOn[];
   notes?: string;
   variantName?: string;
 };
@@ -54,19 +59,26 @@ export type OrderStatus =
   | "cancelled";
 
 export type Order = {
+  code?: string;
   id: string;
   mode: "table" | "delivery";
   tableId?: string;
+  serviceType?: "table" | "takeaway";
+  customerId?: string;
+  customerEmail?: string;
   contact: {
     name?: string;
-    phone: string;
+    phone?: string;
     email?: string;
     address?: string;
     landmark?: string;
+    community?: string;
+    tower?: string;
+    unit?: string;
   };
   payment: {
     method: PaymentMethod;
-    status: PaymentStatus;
+    status: PaymentStatus | "pending_cash";
     reference?: string;
     upiLink?: string;
     amount: number;

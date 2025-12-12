@@ -69,6 +69,110 @@ export const sampleMenu: MenuItem[] = [
     tags: ["coffee"],
     image: "/images/affogato.jpg",
   },
+  {
+    id: "masala-chai",
+    name: "Masala Chai Kettle",
+    description: "Assam tea simmered with ginger, cardamom, clove, and milk.",
+    price: 140,
+    category: "Hot Drinks",
+    tags: ["chai", "comfort"],
+    image: "",
+    addOns: [
+      { id: "jaggery-chai", name: "Jaggery", price: 10 },
+      { id: "extra-masala", name: "Extra masala", price: 10 },
+    ],
+  },
+  {
+    id: "iced-rose-latte",
+    name: "Iced Rose Latte",
+    description: "Cold brew with rose syrup, milk, and pistachio dust.",
+    price: 210,
+    category: "Cold Drinks",
+    tags: ["summer"],
+    image: "",
+    addOns: [
+      { id: "rose-jelly", name: "Rose jelly", price: 25 },
+      { id: "almond-milk-cold", name: "Almond milk", price: 30 },
+    ],
+  },
+  {
+    id: "paneer-tikka",
+    name: "Tandoori Paneer Tikka",
+    description: "Charred cottage cheese, peppers, and onions with mint chutney.",
+    price: 320,
+    category: "Tandoori",
+    tags: ["smoky", "veg"],
+    image: "",
+    addOns: [
+      { id: "cheese-dip", name: "Cheese dip", price: 35 },
+      { id: "extra-chutney", name: "Extra chutney", price: 15 },
+    ],
+  },
+  {
+    id: "afghani-chicken",
+    name: "Afghani Cream Chicken",
+    description: "Creamy malai marinade, skewered chicken, mild spice.",
+    price: 360,
+    category: "Afghani",
+    tags: ["creamy"],
+    image: "",
+    addOns: [
+      { id: "roomali", name: "Roomali roti", price: 25 },
+      { id: "extra-malai", name: "Extra malai", price: 20 },
+    ],
+  },
+  {
+    id: "shawarma-wrap",
+    name: "Street-Style Shawarma",
+    description: "Pickled veggies, garlic toum, spiced chicken, toasted wrap.",
+    price: 280,
+    category: "Shawarma",
+    tags: ["grab & go"],
+    image: "",
+    addOns: [
+      { id: "extra-toum", name: "Extra garlic toum", price: 15 },
+      { id: "peri-fries", name: "Peri-peri fries", price: 90 },
+    ],
+  },
+  {
+    id: "veg-momos",
+    name: "Steamed Veg Momos",
+    description: "Hand-folded momos with veggie filling and spicy chutney.",
+    price: 190,
+    category: "Momos",
+    tags: ["light"],
+    image: "",
+    addOns: [
+      { id: "pan-fry", name: "Pan-fry to crispy", price: 25 },
+      { id: "extra-chutney-momo", name: "Extra momo chutney", price: 15 },
+    ],
+  },
+  {
+    id: "schezwan-noodles",
+    name: "Schezwan Hakka Noodles",
+    description: "Wok-tossed noodles, veggies, house-made schezwan sauce.",
+    price: 240,
+    category: "Chinese",
+    tags: ["spicy"],
+    image: "",
+    addOns: [
+      { id: "add-egg", name: "Add fried egg", price: 30 },
+      { id: "extra-schezwan", name: "Extra schezwan", price: 15 },
+    ],
+  },
+  {
+    id: "butter-chicken",
+    name: "Butter Chicken Bowl",
+    description: "Creamy tomato gravy, charred chicken, with jeera rice.",
+    price: 340,
+    category: "Indian",
+    tags: ["hearty"],
+    image: "",
+    addOns: [
+      { id: "butter-naan", name: "Butter naan", price: 35 },
+      { id: "extra-gravy", name: "Extra gravy", price: 30 },
+    ],
+  },
 ];
 
 export const sampleTables: Table[] = [
@@ -81,6 +185,7 @@ const now = Date.now();
 
 export const sampleOrders: Order[] = [
   {
+    code: "YY-2041",
     id: "YY-2041",
     mode: "table",
     tableId: "T2",
@@ -104,7 +209,7 @@ export const sampleOrders: Order[] = [
         name: "Forest Flat White",
         price: 220,
         quantity: 2,
-        addOns: [{ id: "oat-milk", name: "Oat milk", price: 35 }],
+        addOns: [{ name: "Oat milk", price: 35 }],
       },
       {
         itemId: "tiramisu-cup",
@@ -119,6 +224,7 @@ export const sampleOrders: Order[] = [
     updatedAt: now - 2 * 60 * 1000,
   },
   {
+    code: "YY-2042",
     id: "YY-2042",
     mode: "delivery",
     contact: {

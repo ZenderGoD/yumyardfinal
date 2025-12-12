@@ -3,6 +3,7 @@ import {
   DetailedHTMLProps,
   ReactElement,
   cloneElement,
+  isValidElement,
 } from "react";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
@@ -11,13 +12,14 @@ type ButtonProps = DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
 > & {
-  variant?: "primary" | "ghost" | "outline" | "soft";
-  size?: "sm" | "md" | "lg";
+  variant?: "primary" | "ghost" | "outline" | "soft" | "secondary";
+  size?: "xs" | "sm" | "md" | "lg";
   loading?: boolean;
   asChild?: boolean;
 };
 
 const sizeMap = {
+  xs: "h-8 px-2 text-xs",
   sm: "h-9 px-3 text-sm",
   md: "h-11 px-4 text-sm",
   lg: "h-12 px-5 text-base",
@@ -31,6 +33,8 @@ const variantMap = {
     "border border-[var(--border)] text-[var(--accent)] hover:bg-[var(--accent-soft)]",
   soft:
     "bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[var(--accent-soft)]/80",
+  secondary:
+    "bg-white border border-[var(--border)] text-[#2c2218] hover:bg-[var(--accent-soft)]",
 };
 
 export function Button({
@@ -51,9 +55,11 @@ export function Button({
     className,
   );
 
-  if (asChild && children && typeof children === "object") {
-    return cloneElement(children as ReactElement, {
-      className: twMerge((children as ReactElement).props.className, classes),
+  if (asChild && isValidElement(children)) {
+    const child = children as ReactElement<{ className?: string }>;
+
+    return cloneElement(child, {
+      className: twMerge(child.props.className, classes),
     });
   }
 

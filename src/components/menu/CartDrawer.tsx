@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useMemo } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useCart } from "@/stores/cart";
+import { useAuth } from "@/stores/auth";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import { formatCurrency } from "@/lib/format";
-import { buildUpiDeepLink } from "@/lib/payments";
 import { toast } from "sonner";
+import { Id } from "@/convex/_generated/dataModel";
 
 export function CartDrawer() {
   const {
@@ -19,19 +20,27 @@ export function CartDrawer() {
     tableId,
     setTableId,
     contact,
-    setContact,
     tables,
     clear,
+    serviceType,
   } = useCart();
+  const { customer } = useAuth();
+  const createOrder = useMutation(api.orders.create);
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "cod">("upi");
+  const [placing, setPlacing] = useState(false);
   const subtotal = total();
   const taxes = Math.round(subtotal * 0.05);
   const fees = mode === "delivery" ? 30 : 0;
   const grandTotal = subtotal + taxes + fees;
 
   const phoneValid = contact.phone && contact.phone.length >= 10;
-  const addressValid = mode === "table" || (contact.address && phoneValid);
+  const deliveryFieldsFilled = contact.community && contact.tower && contact.unit;
+  const addressValid = mode === "table" || (deliveryFieldsFilled && phoneValid);
   const canPlace = items.length > 0 && addressValid;
+
+  const scrollToDeliveryDetails = () => {
+    document.getElementById("delivery-details")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const handlePlace = () => {
     if (!items.length) {
@@ -39,38 +48,73 @@ export function CartDrawer() {
       return;
     }
     if (mode === "delivery" && !addressValid) {
-      toast.error("Add address and valid phone (10+ digits)");
+      toast.error("Add community, tower, flat, and valid phone (10+ digits)");
       return;
     }
-    const orderId = `YY-${Math.floor(Math.random() * 9000 + 1000)}`;
-    if (paymentMethod === "upi") {
-      const link = buildUpiDeepLink({
-        payeeVpa: process.env.NEXT_PUBLIC_UPI_ID ?? "test@upi",
-        amount: grandTotal,
-        note: orderId,
-        payeeName: "YumYard",
-      });
-      toast.success("UPI link ready. Opening your BHIM app...");
-      window.open(link, "_blank");
-    } else {
-      toast.success("COD reserved. Pay on delivery/serve.");
+    const customerEmail = customer?.email ?? contact.email;
+    if (!customerEmail) {
+      toast.error("Sign in or add an email to place the order.");
+      return;
     }
-    clear();
+    setPlacing(true);
+    createOrder({
+      mode,
+      serviceType,
+      tableId,
+      contact: {
+        ...contact,
+        email: contact.email ?? customerEmail,
+      },
+      customerId: customer?.id ? (customer.id as Id<"customers">) : undefined,
+      customerEmail,
+      items: items.map((i) => ({
+        itemId: i.itemId,
+        name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+        addOns: i.addOns?.map((a) => ({ name: a.name, price: a.price })),
+        notes: i.notes,
+      })),
+      paymentMethod,
+    })
+      .then((res) => {
+        if (!res) {
+          toast.error("Order did not save. Try again.");
+          return;
+        }
+        if (paymentMethod === "upi") {
+          if (res.upiLink) {
+            toast.success(`Order ${res.code} placed. Opening UPI.`);
+            window.open(res.upiLink, "_blank");
+          } else {
+            toast.error("UPI link missing; please try again.");
+            return;
+          }
+        } else {
+          toast.success(`Order ${res.code} placed. Pay cash on delivery/serve.`);
+        }
+        clear();
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Couldn’t place the order. Please retry.");
+      })
+      .finally(() => setPlacing(false));
   };
 
   const itemList = useMemo(
     () =>
       items.map((item) => (
         <div
-          key={item.itemId + item.notes}
-          className="flex items-start justify-between rounded-xl border border-[var(--border)] bg-white/80 p-3"
+          key={`${item.itemId || 'unknown'}-${item.notes || 'no-notes'}-${item.name}`}
+          className="flex items-start justify-between rounded-xl border border-border bg-white/80 p-3"
         >
           <div>
             <p className="text-sm font-semibold text-[#2c2218]">
               {item.quantity}× {item.name}
             </p>
             {item.addOns?.length ? (
-              <p className="text-xs text-[var(--muted)]">
+              <p className="text-xs text-muted">
                 Add-ons: {item.addOns.map((a) => a.name).join(", ")}
               </p>
             ) : null}
@@ -84,7 +128,7 @@ export function CartDrawer() {
             </p>
             <button
               className="text-xs text-red-500 underline"
-              onClick={() => removeItem(item.itemId)}
+              onClick={() => item.itemId && removeItem(item.itemId)}
             >
               Remove
             </button>
@@ -95,10 +139,10 @@ export function CartDrawer() {
   );
 
   return (
-    <div className="sticky top-6 flex h-fit flex-col gap-4 rounded-2xl border border-[var(--border)] bg-white/80 p-4 shadow-md">
+    <div className="flex h-fit flex-col gap-4 rounded-2xl border border-border bg-white/80 p-4 shadow-md">
       <div className="flex items-center justify-between">
         <p className="text-base font-semibold text-[#2c2218]">Your order</p>
-        <div className="flex gap-2 rounded-full bg-[var(--accent-soft)] p-1 text-xs font-semibold text-[var(--accent)]">
+        <div className="flex gap-2 rounded-full bg-accent-soft p-1 text-xs font-semibold text-accent">
           <button
             className={`rounded-full px-3 py-1 ${mode === "table" ? "bg-white shadow" : ""}`}
             onClick={() => setMode("table")}
@@ -118,7 +162,7 @@ export function CartDrawer() {
         <label className="flex flex-col gap-1 text-sm font-semibold text-[#3f3225]">
           Table
           <select
-            className="h-11 rounded-xl border border-[var(--border)] bg-white px-3 text-sm shadow-sm outline-none"
+            className="h-11 rounded-xl border border-border bg-white px-3 text-sm shadow-sm outline-none"
             value={tableId}
             onChange={(e) => setTableId(e.target.value)}
           >
@@ -132,54 +176,69 @@ export function CartDrawer() {
       )}
 
       {mode === "delivery" && (
-        <div className="grid gap-3">
-          <Input
-            label="Name"
-            value={contact.name ?? ""}
-            onChange={(e) => setContact({ ...contact, name: e.target.value })}
-          />
-          <Input
-            label="Phone"
-            value={contact.phone ?? ""}
-            onChange={(e) => setContact({ ...contact, phone: e.target.value })}
-          />
-          <Textarea
-            label="Address"
-            value={contact.address ?? ""}
-            onChange={(e) => setContact({ ...contact, address: e.target.value })}
-          />
-          <Input
-            label="Landmark"
-            value={contact.landmark ?? ""}
-            onChange={(e) => setContact({ ...contact, landmark: e.target.value })}
-          />
+        <div className="space-y-3 rounded-xl border border-border bg-white/70 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-[#2c2218]">Delivery details</p>
+              <p className="text-xs text-muted">Auto-filled from the delivery section.</p>
+            </div>
+            <button
+              type="button"
+              className="text-xs font-semibold text-accent underline"
+              onClick={scrollToDeliveryDetails}
+            >
+              Edit details
+            </button>
+          </div>
+          <dl className="grid gap-2 text-sm text-[#2c2218]">
+            <div className="flex justify-between">
+              <dt className="text-muted">Name</dt>
+              <dd className="font-semibold">{contact.name || "Add in delivery section"}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">Phone</dt>
+              <dd className="font-semibold">{contact.phone || "Add in delivery section"}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">Community</dt>
+              <dd className="font-semibold">{contact.community || "Add in delivery section"}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">Tower</dt>
+              <dd className="font-semibold">{contact.tower || "Add in delivery section"}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">Flat / unit</dt>
+              <dd className="font-semibold">{contact.unit || "Add in delivery section"}</dd>
+            </div>
+          </dl>
         </div>
       )}
 
       <div className="flex flex-col gap-3">{itemList}</div>
 
-      <div className="space-y-2 rounded-xl bg-[var(--accent-soft)]/60 p-3 text-sm">
-        <div className="flex justify-between text-[var(--muted)]">
+      <div className="space-y-2 rounded-xl bg-accent-soft/60 p-3 text-sm">
+        <div className="flex justify-between text-muted">
           <span>Subtotal</span>
           <span>{formatCurrency(subtotal)}</span>
         </div>
-        <div className="flex justify-between text-[var(--muted)]">
+        <div className="flex justify-between text-muted">
           <span>Taxes (5%)</span>
           <span>{formatCurrency(taxes)}</span>
         </div>
         {fees > 0 && (
-          <div className="flex justify-between text-[var(--muted)]">
+          <div className="flex justify-between text-muted">
             <span>Delivery</span>
             <span>{formatCurrency(fees)}</span>
           </div>
         )}
-        <div className="flex justify-between border-t border-[var(--border)] pt-2 text-base font-semibold text-[#2c2218]">
+        <div className="flex justify-between border-t border-border pt-2 text-base font-semibold text-[#2c2218]">
           <span>Total</span>
           <span>{formatCurrency(grandTotal)}</span>
         </div>
       </div>
 
-      <div className="flex gap-2 rounded-full bg-[var(--accent-soft)] p-1 text-xs font-semibold text-[var(--accent)]">
+      <div className="flex gap-2 rounded-full bg-accent-soft p-1 text-xs font-semibold text-accent">
         <button
           className={`rounded-full px-3 py-2 ${paymentMethod === "upi" ? "bg-white shadow" : ""}`}
           onClick={() => setPaymentMethod("upi")}
@@ -194,7 +253,7 @@ export function CartDrawer() {
         </button>
       </div>
 
-      <Button onClick={handlePlace} disabled={!canPlace}>
+      <Button onClick={handlePlace} disabled={!canPlace || placing} loading={placing}>
         {paymentMethod === "upi" ? "Pay via UPI" : "Place COD order"}
       </Button>
     </div>

@@ -3,21 +3,30 @@ import { MenuItem, OrderItem } from "@/lib/types";
 import { sampleTables } from "@/lib/sampleData";
 
 type Mode = "table" | "delivery";
+type ServiceType = "table" | "takeaway";
 
 type Contact = {
   name?: string;
   phone?: string;
+  email?: string;
   address?: string;
   landmark?: string;
+  community?: string;
+  tower?: string;
+  unit?: string;
 };
 
 type CartState = {
   mode: Mode;
   tableId?: string;
+  qrDetected: boolean;
+  serviceType: ServiceType;
   items: OrderItem[];
   contact: Contact;
   setMode: (mode: Mode) => void;
   setTableId: (id?: string) => void;
+  setQrDetected: (flag: boolean) => void;
+  setServiceType: (service: ServiceType) => void;
   setContact: (contact: Contact) => void;
   addItem: (
     item: MenuItem,
@@ -30,8 +39,10 @@ type CartState = {
 };
 
 export const useCart = create<CartState>((set, get) => ({
-  mode: "table",
-  tableId: sampleTables[0]?.id,
+  mode: "delivery",
+  tableId: undefined,
+  qrDetected: false,
+  serviceType: "table",
   items: [],
   contact: {},
   tables: sampleTables,
@@ -39,8 +50,11 @@ export const useCart = create<CartState>((set, get) => ({
     set(() => ({
       mode,
       tableId: mode === "table" ? sampleTables[0]?.id : undefined,
+      qrDetected: false,
     })),
   setTableId: (id) => set(() => ({ tableId: id })),
+  setQrDetected: (flag) => set(() => ({ qrDetected: flag })),
+  setServiceType: (service) => set(() => ({ serviceType: service })),
   setContact: (contact) => set(() => ({ contact })),
   addItem: (item, options) =>
     set((state) => {
